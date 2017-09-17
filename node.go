@@ -4,6 +4,8 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"time"
+	"./server"
+	"encoding/base64"
 )
 
 type Data struct {
@@ -56,10 +58,17 @@ func proofOfWork(lastProof int) int {
 }
 
 func main() {
-	fmt.Println(blockChain)
-	b := createGenesisBlock()
-	fmt.Printf("%+v\n", b)
-	fmt.Println(blockChain)
-	fmt.Println("%+v\n", nextBlock(b))
-	fmt.Println(blockChain)
+	blockChain = append(blockChain, createGenesisBlock())
+	previousBlock := blockChain[0]
+	numOfBlockToAdd := 20
+
+	for i := 0; i < numOfBlockToAdd; i++ {
+		blockToAdd := nextBlock(previousBlock)
+		blockChain = append(blockChain, blockToAdd)
+		fmt.Printf("Block %d has been added to the blockchain!\n", blockToAdd.index)
+		fmt.Printf("Hash: %s\n", base64.URLEncoding.EncodeToString(blockToAdd.hash))
+		previousBlock = blockToAdd
+	}
+
+	server.Listen()
 }
