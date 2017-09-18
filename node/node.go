@@ -5,19 +5,27 @@ import (
 	"time"
 	"encoding/json"
 	"log"
+	"../transaction"
 )
+
+var Address = "q3nf394hjg-random-miner-address-34nf3i4nflkn3oi"
+
+type Data struct {
+	ProofOfWork   int
+	Transactions  []*transaction.Transaction
+}
 
 type Block struct {
 	Index         int
 	Timestamp     int64
-	Data          map[string]interface{}
+	Data          Data
 	PreviousHash  []byte
 	Hash          []byte
 }
 
 var BlockChain []*Block
 // Private
-func blockHash(block *Block) []byte {
+func BlockHash(block *Block) []byte {
 	h := sha256.New()
 
 	dataBytes, err := json.Marshal(block.Data)
@@ -34,15 +42,19 @@ func blockHash(block *Block) []byte {
 
 // Interface
 func CreateGenesisBlock() *Block {
-	b := &Block{Index: 0, Timestamp: time.Now().Unix(), Data: map[string]interface{}{}, PreviousHash: nil, Hash: nil}
-	b.Hash = blockHash(b)
+	data := Data{ProofOfWork: 1, Transactions: []*transaction.Transaction{}}
+	b := &Block{Index: 0, Timestamp: time.Now().Unix(), Data: data, PreviousHash: nil, Hash: nil}
+	b.Hash = BlockHash(b)
 	return b
 }
 
 func NextBlock(blockChain []*Block, lastBlock *Block) *Block {
 	i := lastBlock.Index + 1
-	b := &Block{Index: i, Timestamp: time.Now().Unix(), Data: map[string]interface{}{}, PreviousHash: lastBlock.Hash, Hash: nil}
-	b.Hash = blockHash(b)
+	data := Data{}
+
+	b := &Block{Index: i, Timestamp: time.Now().Unix(), Data: data, PreviousHash: lastBlock.Hash, Hash: nil}
+	b.Hash = BlockHash(b)
+
 	return b
 }
 
