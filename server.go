@@ -3,8 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"log"
 	"./node"
 )
 
@@ -22,29 +22,28 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleTransaction(w http.ResponseWriter, r *http.Request) {
-	b, err := ioutil.ReadAll(r.Body)
-	defer r.Body.Close()
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
+	dec := json.NewDecoder(r.Body)
 	var data Data
-	err = json.Unmarshal(b, &data)
+
+	err := dec.Decode(&data)
 	if err != nil {
+		log.Fatal(err)
 		http.Error(w, err.Error(), 500)
 		return
 	}
+
+	fmt.Printf("From: %s\n", data.From)
+	fmt.Printf("To: %s\n", data.To)
+	fmt.Printf("Amount: %f\n", data.Amount)
 
 	output, err := json.Marshal(data)
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 		return
 	}
+
 	w.Header().Set("content-type", "application/json")
 	w.Write(output)
-	fmt.Printf("From: %s\n", data.From)
-	fmt.Printf("To: %s\n", data.To)
-	fmt.Printf("Amount: %f\n", data.Amount)
 }
 
 func listen() {
