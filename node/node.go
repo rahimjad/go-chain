@@ -2,38 +2,47 @@ package node
 
 import (
 	"crypto/sha256"
-	"fmt"
 	"time"
+	"encoding/json"
+	"log"
 )
 
 type Block struct {
-	index         int
-	timestamp     int64
-	data          string
-	previous_hash []byte
-	hash          []byte
+	Index         int
+	Timestamp     int64
+	Data          map[string]interface{}
+	PreviousHash  []byte
+	Hash          []byte
 }
 
 var BlockChain []*Block
 // Private
 func blockHash(block *Block) []byte {
 	h := sha256.New()
-	blockString := string(block.index) + string(block.timestamp) + block.data + string(block.previous_hash)
+
+	dataBytes, err := json.Marshal(block.Data)
+	if err != nil {
+		log.Fatal(err)
+		return []byte{}
+	}
+
+	blockString := string(block.Index) + string(block.Timestamp) + string(dataBytes) + string(block.PreviousHash)
 	h.Write([]byte(blockString))
+
 	return h.Sum(nil)
 }
 
 // Interface
 func CreateGenesisBlock() *Block {
-	b := &Block{index: 0, timestamp: time.Now().Unix(), data: "Genesis Block", previous_hash: nil, hash: nil}
-	b.hash = blockHash(b)
+	b := &Block{Index: 0, Timestamp: time.Now().Unix(), Data: map[string]interface{}{}, PreviousHash: nil, Hash: nil}
+	b.Hash = blockHash(b)
 	return b
 }
 
 func NextBlock(blockChain []*Block, lastBlock *Block) *Block {
-	i := lastBlock.index + 1
-	b := &Block{index: i, timestamp: time.Now().Unix(), data: fmt.Sprintf("Hey I am block %d", i), previous_hash: lastBlock.hash, hash: nil}
-	b.hash = blockHash(b)
+	i := lastBlock.Index + 1
+	b := &Block{Index: i, Timestamp: time.Now().Unix(), Data: map[string]interface{}{}, PreviousHash: lastBlock.Hash, Hash: nil}
+	b.Hash = blockHash(b)
 	return b
 }
 
